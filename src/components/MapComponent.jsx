@@ -6,6 +6,7 @@ import 'leaflet.heat';
 // Gliwice, Poland coordinates
 const GLIWICE_CENTER = [50.2944, 18.6713];
 const DEFAULT_ZOOM = 13;
+const MAX_POINT_VALUE = 5; // Maximum allowed value reduced from 10 to 5
 
 // Custom hook to handle map events
 const MapEventHandler = ({ onMapClick, pois, categoryWeights }) => {
@@ -49,7 +50,7 @@ const HeatmapLayer = ({ pois, categoryWeights }) => {
         const intensity = calculateLocationValue(point, pois, categoryWeights);
         
         if (intensity > 0) {
-          heatPoints.push([lat, lng, intensity / 10]); // Scale down intensity for better visualization
+          heatPoints.push([lat, lng, intensity]); // Value is already capped at MAX_POINT_VALUE
         }
       }
     }
@@ -95,12 +96,13 @@ const calculateLocationValue = (point, pois, categoryWeights) => {
     
     // Apply category weight
     const categoryWeight = categoryWeights[poi.category] || 1;
-    const weightedValue = baseValue * categoryWeight;
+    const weightedValue = baseValue/100 * categoryWeight;
     
     totalValue += weightedValue;
   });
   
-  return totalValue;
+  // Cap the total value at MAX_POINT_VALUE (now 5)
+  return Math.min(totalValue, MAX_POINT_VALUE);
 };
 
 const MapComponent = ({ pois, categoryWeights, onMapClick }) => {
